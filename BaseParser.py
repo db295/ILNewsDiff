@@ -8,7 +8,6 @@ import bleach
 import dataset
 from PIL import Image
 import requests
-import tweepy
 from simplediff import html_diff
 from selenium import webdriver
 
@@ -94,6 +93,7 @@ class BaseParser(object):
         return response.media_id_string
 
     def tweet_with_media(self, text, images, reply_to=None):
+        logging.debug(f"Tweeting {text} with {images} in reply to {reply_to}")
         if TESTING:
             print(text, images, reply_to)
             return True
@@ -148,6 +148,7 @@ class BaseParser(object):
         return
 
     def get_page(self, url, header=None, payload=None):
+        r = None
         for x in range(MAX_RETRIES):
             try:
                 r = requests.get(url=url, headers=header, params=payload)
@@ -237,4 +238,4 @@ class BaseParser(object):
         return True
 
     def __str__(self):
-        return ('\n'.join(self.urls))
+        return '\n'.join(self.urls)
