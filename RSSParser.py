@@ -15,27 +15,9 @@ class RSSParser(BaseParser):
         raise NotImplemented()
 
     def store_data(self, data):
-        if self.articles_table.find_one(
-                article_id=data['article_id']) is None:  # New
-            article = {
-                'article_id': data['article_id'],
-                'add_dt': data['date_time'],
-                'status': 'home',
-                'tweet_id': None
-            }
-            self.articles_table.insert(article)
-            logging.info('New article tracked: %s', data['url'])
-            data['version'] = 1
-            self.versions_table.insert(data)
+        if self.articles_table.find_one(article_id=data['article_id']) is None:  # New
+            self.track_article(data)
         else:
-            # re insert
-            if self.articles_table.find_one(article_id=data['article_id'],
-                                            status='removed') is not None:
-                article = {
-                    'article_id': data['article_id'],
-                    'add_dt': data['date_time'],
-                }
-
             count = self.versions_table.count(
                 self.versions_table.table.columns.article_id == data[
                     'article_id'],
@@ -43,26 +25,34 @@ class RSSParser(BaseParser):
             if count == 1:  # Existing
                 pass
             else:  # Changed
-                result = self.db.query('SELECT * \
+                self.tweet_change(data)
+
+    def tweet_change(self, data):
+        result = self.db.query('SELECT * \
                                        FROM rss_versions\
                                        WHERE article_id = "%s" \
                                        ORDER BY version DESC \
                                        LIMIT 1' % (data['article_id']))
-                for row in result:
-                    data['version'] = row['version']
-                    self.versions_table.insert(data)
-                    url = data['url']
-                    if row['url'] != data['url']:
-                        if self.show_diff(row['url'], data['url']):
-                            tweet_text = "Modification d'URL"
-                            self.tweet(tweet_text, data['article_id'], url,
-                                       'article_id')
-                    if row['title'] != data['title']:
-                        if self.show_diff(row['title'], data['title']):
-                            tweet_text = "Modification du Titre"
-                            self.tweet(tweet_text, data['article_id'], url,
-                                       'article_id')
+        for row in result:
+            data['version'] = row['version']
+            self.versions_table.insert(data)
+            url = data['url']
+            if row['title'] != data['title']:
+                if self.show_diff(row['title'], data['title']):
+                    tweet_text = "שינוי בכותרת"
+                    self.tweet(tweet_text, data['article_id'], url, 'article_id')
 
+    def track_article(self, data):
+        article = {
+            'article_id': data['article_id'],
+            'add_dt': data['date_time'],
+            'status': 'home',
+            'tweet_id': None
+        }
+        self.articles_table.insert(article)
+        logging.info('New article tracked: %s', data['url'])
+        data['version'] = 1
+        self.versions_table.insert(data)
 
     def loop_entries(self, entries):
         if len(entries) == 0:
