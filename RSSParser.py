@@ -7,7 +7,7 @@ from BaseParser import BaseParser
 class RSSParser(BaseParser):
     def __init__(self, api, rss_url, phantomjs_path):
         BaseParser.__init__(self, api, phantomjs_path)
-        self.urls = [rss_url]
+        self.url = rss_url
         self.articles_table = self.db['rss_ids']
         self.versions_table = self.db['rss_versions']
 
@@ -34,7 +34,7 @@ class RSSParser(BaseParser):
                                        ORDER BY version DESC \
                                        LIMIT 1' % (data['article_id']))
         for row in result:
-            data['version'] = row['version']
+            data['version'] = row['version'] + 1
             self.versions_table.insert(data)
             url = data['url']
             if row['title'] != data['title']:
@@ -77,7 +77,7 @@ class RSSParser(BaseParser):
         return True
 
     def parse(self):
-        r = feedparser.parse(self.urls[0])
+        r = feedparser.parse(self.url)
         if r is None:
             logging.warning('Empty response RSS')
             return

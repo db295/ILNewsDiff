@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 
+import tweepy
 from pytz import timezone
 
 from HaaretzParser import HaaretzParser
@@ -11,14 +12,12 @@ from HaaretzParser import HaaretzParser
 TIMEZONE = 'Israel'
 LOCAL_TZ = timezone(TIMEZONE)
 
-
 if 'LOG_FOLDER' in os.environ:
     LOG_FOLDER = os.environ['LOG_FOLDER']
 else:
     LOG_FOLDER = ''
 
-PHANTOMJS_PATH = "C:\\phantomjs\\"  # os.environ['PHANTOMJS_PATH']
-
+PHANTOMJS_PATH = os.environ['PHANTOMJS_PATH']
 
 
 def main():
@@ -28,23 +27,23 @@ def main():
                                   logging.StreamHandler(sys.stdout)],
                         format='%(asctime)s %(name)13s %(levelname)8s: ' +
                                '%(message)s',
-                        level=logging.INFO)
+                        level=logging.DEBUG)
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.info('Starting script')
 
-    # consumer_key = os.environ['NYT_TWITTER_CONSUMER_KEY']
-    # consumer_secret = os.environ['NYT_TWITTER_CONSUMER_SECRET']
-    # access_token = os.environ['NYT_TWITTER_ACCESS_TOKEN']
-    # access_token_secret = os.environ['NYT_TWITTER_ACCESS_TOKEN_SECRET']
-    # auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    # auth.secure = True
-    # auth.set_access_token(access_token, access_token_secret)
-    # twitter_api = tweepy.API(auth)
-    # logging.debug('Twitter API configured')
+    consumer_key = os.environ['NYT_TWITTER_CONSUMER_KEY']
+    consumer_secret = os.environ['NYT_TWITTER_CONSUMER_SECRET']
+    access_token = os.environ['NYT_TWITTER_ACCESS_TOKEN']
+    access_token_secret = os.environ['NYT_TWITTER_ACCESS_TOKEN_SECRET']
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.secure = True
+    auth.set_access_token(access_token, access_token_secret)
+    twitter_api = tweepy.API(auth)
+    logging.debug('Twitter API configured')
 
     try:
-        logging.debug('Starting RSS')
-        parsers = [HaaretzParser(None, LOCAL_TZ, PHANTOMJS_PATH)]
+        logging.debug('Starting Parsers')
+        parsers = [HaaretzParser(twitter_api, LOCAL_TZ, PHANTOMJS_PATH)]
         for parser in parsers:
             parser.parse()
         logging.debug('Finished')
