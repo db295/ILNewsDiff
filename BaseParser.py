@@ -145,7 +145,6 @@ class BaseParser(object):
             tweet_id = tweet.id
         logging.info('Id to store: %s', tweet_id)
         self.update_tweet_db(article_id, tweet_id, column)
-        return
 
     def get_page(self, url, header=None, payload=None):
         r = None
