@@ -17,7 +17,7 @@ if 'LOG_FOLDER' in os.environ:
 else:
     LOG_FOLDER = ''
 
-PHANTOMJS_PATH = "C:\\phantomjs\\"  # os.environ['PHANTOMJS_PATH']
+PHANTOMJS_PATH = os.environ['PHANTOMJS_PATH']
 
 
 
@@ -43,7 +43,7 @@ def main():
     # logging.debug('Twitter API configured')
 
     try:
-        logging.debug('Starting RSS')
+        logging.debug('Starting Parsers')
         parsers = [HaaretzParser(None, LOCAL_TZ, PHANTOMJS_PATH)]
         for parser in parsers:
             parser.parse()

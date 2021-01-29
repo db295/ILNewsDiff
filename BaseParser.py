@@ -93,7 +93,7 @@ class BaseParser(object):
         return response.media_id_string
 
     def tweet_with_media(self, text, images, reply_to=None):
-        logging.debug(f"Tweeting {text} with {images} in reply to {reply_to}")
+        logging.info(f"Tweeting {text} with {images} in reply to {reply_to}")
         if TESTING:
             print(text, images, reply_to)
             return True

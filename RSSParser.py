@@ -34,7 +34,7 @@ class RSSParser(BaseParser):
                                        ORDER BY version DESC \
                                        LIMIT 1' % (data['article_id']))
         for row in result:
-            data['version'] = row['version']
+            data['version'] = row['version'] + 1
             self.versions_table.insert(data)
             url = data['url']
             if row['title'] != data['title']:
