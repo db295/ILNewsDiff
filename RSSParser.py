@@ -41,6 +41,10 @@ class RSSParser(BaseParser):
                 if self.show_diff(row['title'], data['title']):
                     tweet_text = "שינוי בכותרת"
                     self.tweet(tweet_text, data['article_id'], url, 'article_id')
+            if row['abstract'] != data['abstract']:
+                if self.show_diff(row['abstract'], data['abstract']):
+                    tweet_text = 'שינוי בתת כותרת'
+                    self.tweet(tweet_text, data['article_id'], url, 'article_id')
 
     def track_article(self, data):
         article = {

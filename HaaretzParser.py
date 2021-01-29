@@ -17,6 +17,7 @@ class HaaretzParser(RSSParser):
         article_dict['article_id'] = article.guid
         article_dict['url'] = article.link
         article_dict['title'] = article.title
+        article_dict['abstract'] = self.strip_html(article['description'])
         od = collections.OrderedDict(sorted(article_dict.items()))
         article_dict['hash'] = hashlib.sha224(
             repr(od.items()).encode('utf-8')).hexdigest()
