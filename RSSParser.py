@@ -7,7 +7,7 @@ from BaseParser import BaseParser
 class RSSParser(BaseParser):
     def __init__(self, api, rss_url, phantomjs_path):
         BaseParser.__init__(self, api, phantomjs_path)
-        self.urls = [rss_url]
+        self.urls = rss_url
         self.articles_table = self.db['rss_ids']
         self.versions_table = self.db['rss_versions']
 
