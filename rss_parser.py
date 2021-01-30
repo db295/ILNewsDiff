@@ -5,8 +5,8 @@ from base_parser import BaseParser
 
 
 class RSSParser(BaseParser):
-    def __init__(self, api, rss_url, phantomjs_path):
-        BaseParser.__init__(self, api, phantomjs_path)
+    def __init__(self, rss_url):
+        BaseParser.__init__(self)
         self.url = rss_url
 
     def parse(self):

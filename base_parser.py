@@ -23,8 +23,7 @@ RETRY_DELAY = 3
 
 
 class BaseParser():
-    def __init__(self, api, phantomjs_path):
-        self.phantomjs_path = phantomjs_path
+    def __init__(self):
         self.data_provider = DataProvider()
 
     def parse(self):
@@ -104,7 +103,7 @@ class BaseParser():
             return 
         if previous_data == current_data:
             return
-        saved_image_diff_path = generate_image_diff(previous_data, current_data, self.phantomjs_path)
+        saved_image_diff_path = generate_image_diff(previous_data, current_data)
         self.tweet(tweet_text, article_id, url, saved_image_diff_path)
 
     def tweet_all_changes(self, data: Dict):
@@ -115,10 +114,10 @@ class BaseParser():
         self.tweet_change(previous_version['abstract'], data['abstract'], "שינוי בתת כותרת", article_id, url)
 
     def loop_entries(self, entries):
+        current_ids = set()
         for article in entries:
             try:
                 article_dict = self.entry_to_dict(article)
-                current_ids = set()
                 self.store_data(article_dict)
                 current_ids.add(article_dict['article_id'])
                 self.data_provider.remove_old(current_ids)

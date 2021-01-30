@@ -1,3 +1,4 @@
+import os
 import hashlib
 import logging
 import time
@@ -6,8 +7,9 @@ from PIL import Image
 from simplediff import html_diff
 from selenium import webdriver
 
+PHANTOMJS_PATH = os.environ['PHANTOMJS_PATH']
 
-def generate_image_diff(old: str, new: str, phantomjs_path: str):
+def generate_image_diff(old: str, new: str):
     new_hash = hashlib.sha224(new.encode('utf8')).hexdigest()
     logging.info(html_diff(old, new))
     html = """
@@ -27,7 +29,7 @@ def generate_image_diff(old: str, new: str, phantomjs_path: str):
     with open('tmp.html', 'w', encoding="utf-8") as f:
         f.write(html)
     driver = webdriver.PhantomJS(
-        executable_path=phantomjs_path)
+        executable_path=PHANTOMJS_PATH)
     driver.get('tmp.html')
     e = driver.find_element_by_xpath('//p')
     start_height = e.location['y']
