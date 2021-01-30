@@ -2,7 +2,7 @@ import collections
 import hashlib
 from datetime import datetime
 
-from RSSParser import RSSParser
+from rss_parser import RSSParser
 
 HAARETZ_RSS = "https://www.haaretz.co.il/cmlink/1.1617539"
 

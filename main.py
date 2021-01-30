@@ -6,7 +6,7 @@ import sys
 
 from pytz import timezone
 
-from HaaretzParser import HaaretzParser
+from haaretz_parser import HaaretzParser
 
 TIMEZONE = 'Israel'
 LOCAL_TZ = timezone(TIMEZONE)
@@ -17,7 +17,7 @@ if 'LOG_FOLDER' in os.environ:
 else:
     LOG_FOLDER = ''
 
-PHANTOMJS_PATH = "C:\\phantomjs\\"  # os.environ['PHANTOMJS_PATH']
+PHANTOMJS_PATH = os.environ['PHANTOMJS_PATH']
 
 
 
