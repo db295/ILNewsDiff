@@ -51,7 +51,7 @@ class BaseParser():
         # if TESTING, give a random id based on time
         tweet_id = time.time() if TESTING else tweet.id
         logging.info(f'Id to store: {tweet_id}')
-        self.data_provider.update_tweet_db(article_id, tweet_id)
+        self.data_provider.update_tweet_db(article_id, self.get_source(), tweet_id)
 
     @staticmethod
     def get_page(url, header=None, payload=None):
@@ -75,12 +75,12 @@ class BaseParser():
         return r
 
     def store_data(self, data: Dict):
-        if self.data_provider.is_article_tracked(data['article_id'], data['article_id']):
+        if self.data_provider.is_article_tracked(data['article_id'], self.get_source()):
             count = self.data_provider.get_article_version_count(data[
                     'article_id'], self.get_source(), data['hash'])
             if count != 1:  # Changed
                 self.tweet_all_changes(data)
-                self.data_provider.add_article_version(data)
+                self.data_provider.increase_article_version(data['article_id'], self.get_source())
         else:
             self.data_provider.track_article(data)
 
@@ -107,8 +107,6 @@ class BaseParser():
             try:
                 article_dict = self.entry_to_dict(article)
                 self.store_data(article_dict)
-                current_ids.add(article_dict['article_id'])
-                self.data_provider.remove_old(current_ids)
             except BaseException as e:
                 logging.exception(f'Problem looping entry: {article}')
                 print('Exception: {}'.format(str(e)))

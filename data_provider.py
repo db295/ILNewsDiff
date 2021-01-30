@@ -1,5 +1,8 @@
 import logging
 from typing import Set
+import copy
+from datetime import datetime
+
 import dataset
 
 class DataProvider():
@@ -17,7 +20,6 @@ class DataProvider():
             'article_id': data['article_id'],
             'article_source': data['article_source'],
             'add_dt': data['date_time'],
-            'status': 'home',
             'tweet_id': None
         }
         self.articles_table.insert(article)
@@ -35,14 +37,18 @@ class DataProvider():
         return self.db.query(f'SELECT * \
                                 FROM rss_versions\
                                 WHERE article_id = "{article_id}" \
-                                    and article_source = "{article_source} \
+                                    and article_source = "{article_source}" \
                                 ORDER BY version DESC \
                                 LIMIT 1').next()
 
-    def add_article_version(self, data: dict):
-        previous_data_version = self.get_previous_article_version(data['article_id'], data['article_spurce'])
-        data['version'] = previous_data_version['version'] + 1
-        self.versions_table.insert(data)
+    def increase_article_version(self, article_id: str, article_source: str):
+        previous_version = self.get_previous_article_version(article_id, article_source)
+        updated_version = copy.copy(previous_version)
+        del updated_version['id']
+        updated_version['version'] = previous_version['version'] + 1
+        updated_version['date_time'] = datetime.strptime(previous_version['date_time'],
+                                                            '%Y-%m-%d %H:%M:%S.%f')
+        self.versions_table.insert(updated_version)
 
     def update_tweet_db(self, article_id: str, article_source: str, tweet_id: str):
         article = {
@@ -50,7 +56,7 @@ class DataProvider():
             'article_source': article_source,
             'tweet_id': tweet_id
         }
-        self.articles_table.update(article, ['article_id', 'article_source', 'tweet_id'])
+        self.articles_table.update(article, ['article_id', 'article_source'])
         logging.debug('Updated tweet ID in db')
     
     def get_previous_tweet_id(self, article_id: str, article_source: str):
@@ -58,12 +64,3 @@ class DataProvider():
         if search is None or 'tweet_id' not in search:
             return None
         return search['tweet_id']
-
-    def remove_old(self, current_ids: Set):
-        db_ids = set()
-        for nota_db in self.articles_table.find(status='home'):
-            db_ids.add(nota_db['article_id'])
-        for to_remove in (db_ids - current_ids):
-            data = dict(article_id=to_remove, status='removed')
-            self.articles_table.update(data, ['article_id'])
-            logging.info(f'Removed {to_remove}')
