@@ -2,14 +2,14 @@ import collections
 import hashlib
 from datetime import datetime
 
-from RSSParser import RSSParser
+from rss_parser import RSSParser
 
 HAARETZ_RSS = "https://www.haaretz.co.il/cmlink/1.1617539"
 
 
 class HaaretzParser(RSSParser):
-    def __init__(self, api, tz, phantomjs_path):
-        RSSParser.__init__(self, api, HAARETZ_RSS, phantomjs_path)
+    def __init__(self, tz):
+        RSSParser.__init__(self, HAARETZ_RSS)
         self.tz = tz
 
     def entry_to_dict(self, article):
