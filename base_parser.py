@@ -83,7 +83,7 @@ class BaseParser():
                     'article_id'], self.get_source(), data['hash'])
             if count != 1:  # Changed
                 self.tweet_all_changes(data)
-                self.data_provider.increase_article_version(data['article_id'], self.get_source())
+                self.data_provider.increase_article_version(data)
         else:
             self.data_provider.track_article(data)
 
@@ -111,7 +111,10 @@ class BaseParser():
                 article_dict = self.entry_to_dict(article)
                 if article_dict['article_id'] not in articles or not self.should_use_first_item_dedup():
                     articles[article_dict['article_id']] = article_dict
-                for article_dict in articles.values():
-                    self.store_data(article_dict)
             except BaseException as e:
                 logging.exception(f'Problem looping entry: {article}')
+        for article_dict in articles.values():
+            try:
+                self.store_data(article_dict)
+            except BaseException as e:
+                logging.exception(f'Problem looping entry: {article_dict}')

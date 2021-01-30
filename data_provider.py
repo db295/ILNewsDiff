@@ -1,5 +1,5 @@
 import logging
-from typing import Set
+from typing import Dict, Set
 import copy
 from datetime import datetime
 
@@ -41,14 +41,10 @@ class DataProvider():
                                 ORDER BY version DESC \
                                 LIMIT 1').next()
 
-    def increase_article_version(self, article_id: str, article_source: str):
-        previous_version = self.get_previous_article_version(article_id, article_source)
-        updated_version = copy.copy(previous_version)
-        del updated_version['id']
-        updated_version['version'] = previous_version['version'] + 1
-        updated_version['date_time'] = datetime.strptime(previous_version['date_time'],
-                                                            '%Y-%m-%d %H:%M:%S.%f')
-        self.versions_table.insert(updated_version)
+    def increase_article_version(self, data: Dict):
+        previous_version = self.get_previous_article_version(data['article_id'], data['article_source'])
+        data['version'] = previous_version['version'] + 1
+        self.versions_table.insert(data)
 
     def update_tweet_db(self, article_id: str, article_source: str, tweet_id: str):
         article = {
