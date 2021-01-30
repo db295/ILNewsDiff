@@ -19,13 +19,17 @@ else:
 
 def main():
     # logging
-    logging.basicConfig(handlers=[logging.FileHandler(filename=LOG_FOLDER + 'titlediff.log',
-                                                      encoding='utf-8', mode='a+'),
-                                  logging.StreamHandler(sys.stdout)],
-                        format='%(asctime)s %(name)13s %(levelname)8s: ' +
-                               '%(message)s',
+    logging_filehandler = logging.FileHandler(filename=LOG_FOLDER + 'titlediff.log',
+                                              encoding='utf-8', mode='a+')
+    handlers = [logging_filehandler, logging.StreamHandler(sys.stdout)]
+    logging.basicConfig(handlers=handlers,
+                        format='%(asctime)s %(name)13s %(levelname)8s: %(message)s',
                         level=logging.DEBUG)
+
     logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("selenium").setLevel(logging.WARNING)
+    logging.getLogger("PIL").setLevel(logging.WARNING)
+
     logging.info('Starting script')
 
     try:

@@ -30,7 +30,7 @@ class BaseParser():
         raise NotImplemented
 
     def entry_to_dict(self, article):
-        raise NotImplemented() 
+        raise NotImplemented()
 
     def tweet(self, text: str, article_id: str, url: str, image_path: str):
         image_id = upload_media(image_path)
@@ -89,18 +89,18 @@ class BaseParser():
     def store_data(self, data: Dict):
         if self.data_provider.is_article_tracked(data['article_id']):
             count = self.data_provider.get_article_version_count(data[
-                    'article_id'], data['hash'])
+                                                                     'article_id'], data['hash'])
             if count != 1:  # Changed
-                self.data_provider.add_article_version(data)
                 self.tweet_all_changes(data)
+                self.data_provider.add_article_version(data)
         else:
             self.data_provider.track_article(data)
 
     def tweet_change(self, previous_data: str, current_data: str,
-                        tweet_text: str, article_id: str, url: str):
+                     tweet_text: str, article_id: str, url: str):
         if len(previous_data) == 0 or len(current_data) == 0:
             logging.info('Old or New empty')
-            return 
+            return
         if previous_data == current_data:
             return
         saved_image_diff_path = generate_image_diff(previous_data, current_data)

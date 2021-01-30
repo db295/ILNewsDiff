@@ -38,7 +38,7 @@ class DataProvider():
 
     def add_article_version(self, data: dict):
         previous_data_version = self.get_previous_article_version(data['article_id'])
-        data['version'] = previous_data_version['version']
+        data['version'] = previous_data_version['version'] + 1
         self.versions_table.insert(data)
 
     def update_tweet_db(self, article_id: str, tweet_id: str):
