@@ -1,12 +1,13 @@
 import logging
 import os
-import sys
 import time
+from typing import Dict
 
 import bleach
 import requests
 
 from data_provider import DataProvider
+from twitter_helper import upload_media, tweet_text, tweet_with_media
 from image_diff_generator import generate_image_diff
 
 if 'TESTING' in os.environ:
@@ -23,7 +24,6 @@ RETRY_DELAY = 3
 
 class BaseParser():
     def __init__(self, api, phantomjs_path):
-        self.api = api
         self.phantomjs_path = phantomjs_path
         self.data_provider = DataProvider()
 
@@ -33,76 +33,26 @@ class BaseParser():
     def entry_to_dict(self, article):
         raise NotImplemented() 
 
-    def test_twitter(self):
-        print(self.api.rate_limit_status())
-        print(self.api.me().name)
-
-    def media_upload(self, filename):
-        if TESTING:
-            return 1
-        try:
-            response = self.api.media_upload(filename)
-        except:
-            print(sys.exc_info()[0])
-            logging.exception('Media upload')
-            raise
-        return response.media_id_string
-
-    def tweet_with_media(self, text, images, reply_to=None):
-        logging.debug(f"Tweeting {text} with {images} in reply to {reply_to}")
-        if TESTING:
-            print(text, images, reply_to)
-            return True
-        try:
-            if reply_to is not None:
-                tweet_id = self.api.update_status(
-                    status=text, media_ids=images,
-                    in_reply_to_status_id=reply_to)
-            else:
-                tweet_id = self.api.update_status(
-                    status=text, media_ids=images)
-        except:
-            logging.exception('Tweet with media failed')
-            print(sys.exc_info()[0])
-            return False
-        return tweet_id
-
-    def tweet_text(self, text):
-        if TESTING:
-            print(text)
-            return True
-        try:
-            tweet_id = self.api.update_status(status=text)
-        except:
-            logging.exception('Tweet text failed')
-            print(sys.exc_info()[0])
-            return False
-        return tweet_id
-
-    def tweet(self, text, article_id, url, image_path):
-        images = list()
-        image = self.media_upload(image_path)
-        logging.info(f'Media ready with ids: {image}')
-        images.append(image)
+    def tweet(self, text: str, article_id: str, url: str, image_path: str):
+        image_id = upload_media(image_path)
+        logging.info(f'Media ready with id: {image_id}')
         logging.info(f'Text to tweet: {text}')
         logging.info(f'Article id: {article_id}')
         reply_to = self.data_provider.get_previous_tweet_id(article_id)
         if reply_to is None:
             logging.info(f'Tweeting url: {url}')
-            tweet = self.tweet_text(url)
+            tweet = tweet_text(url)
             # if TESTING, give a random id based on time
             reply_to = tweet.id if not TESTING else time.time()
         logging.info(f'Replying to: {reply_to}')
-        tweet = self.tweet_with_media(text, images, reply_to)
-        if TESTING:
-            # if TESTING, give a random id based on time
-            tweet_id = time.time()
-        else:
-            tweet_id = tweet.id
+        tweet = tweet_with_media(text, image_id, reply_to)
+        # if TESTING, give a random id based on time
+        tweet_id = time.time() if TESTING else tweet.id
         logging.info(f'Id to store: {tweet_id}')
         self.data_provider.update_tweet_db(article_id, tweet_id)
 
-    def get_page(self, url, header=None, payload=None):
+    @staticmethod
+    def get_page(url, header=None, payload=None):
         r = None
         for x in range(MAX_RETRIES):
             try:
@@ -122,7 +72,8 @@ class BaseParser():
                 break
         return r
 
-    def strip_html(self, html_str):
+    @staticmethod
+    def strip_html(html: str):
         """
         a wrapper for bleach.clean() that strips ALL tags from the input
         """
@@ -130,50 +81,46 @@ class BaseParser():
         attr = {}
         styles = []
         strip = True
-        return bleach.clean(html_str,
+        return bleach.clean(html,
                             tags=tags,
                             attributes=attr,
                             styles=styles,
                             strip=strip)
-    
-    @staticmethod
-    def _is_changed(previous_data, current_data):
-        if len(previous_data) == 0 or len(current_data) == 0:
-            logging.info('Old or New empty')
-            return False
-        return previous_data != current_data
 
-    def store_data(self, data):
+    def store_data(self, data: Dict):
         if self.data_provider.is_article_tracked(data['article_id']):
             count = self.data_provider.get_article_version_count(data[
                     'article_id'], data['hash'])
             if count != 1:  # Changed
                 self.data_provider.add_article_version(data)
-                self.tweet_change(data)
+                self.tweet_all_changes(data)
         else:
             self.data_provider.track_article(data)
 
+    def tweet_change(self, previous_data: str, current_data: str,
+                        tweet_text: str, article_id: str, url: str):
+        if len(previous_data) == 0 or len(current_data) == 0:
+            logging.info('Old or New empty')
+            return 
+        if previous_data == current_data:
+            return
+        saved_image_diff_path = generate_image_diff(previous_data, current_data, self.phantomjs_path)
+        self.tweet(tweet_text, article_id, url, saved_image_diff_path)
 
-    def tweet_change(self, data):
-        previous_version = self.data_provider.get_previous_article_version(data['article_id'])
+    def tweet_all_changes(self, data: Dict):
+        article_id = data['article_id']
         url = data['url']
-        if self._is_changed(previous_version['title'], data['title']):
-            saved_image_diff_path = generate_image_diff(previous_version['title'], data['title'], self.phantomjs_path)
-            tweet_text = "שינוי בכותרת"
-            self.tweet(tweet_text, data['article_id'], url, saved_image_diff_path)
-        if self._is_changed(previous_version['abstract'], data['abstract']):
-            saved_image_diff_path = generate_image_diff(previous_version['abstract'], data['abstract'], self.phantomjs_path)
-            tweet_text = 'שינוי בתת כותרת'
-            self.tweet(tweet_text, data['article_id'], url, saved_image_diff_path)
+        previous_version = self.data_provider.get_previous_article_version(article_id)
+        self.tweet_change(previous_version['title'], data['title'], "שינוי בכותרת", article_id, url)
+        self.tweet_change(previous_version['abstract'], data['abstract'], "שינוי בתת כותרת", article_id, url)
 
     def loop_entries(self, entries):
         for article in entries:
             try:
                 article_dict = self.entry_to_dict(article)
                 current_ids = set()
-                if article_dict is not None:
-                    self.store_data(article_dict)
-                    current_ids.add(article_dict['article_id'])
+                self.store_data(article_dict)
+                current_ids.add(article_dict['article_id'])
                 self.data_provider.remove_old(current_ids)
             except BaseException as e:
                 logging.exception(f'Problem looping entry: {article}')
