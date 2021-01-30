@@ -1,4 +1,5 @@
 import logging
+
 import feedparser
 
 from base_parser import BaseParser

@@ -12,7 +12,6 @@ auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.secure = True
 auth.set_access_token(access_token, access_token_secret)
 twitter_api = tweepy.API(auth)
-logging.debug('Twitter API configured')
 
 if 'TESTING' in os.environ:
     if os.environ['TESTING'] == 'False':
@@ -21,6 +20,7 @@ if 'TESTING' in os.environ:
         TESTING = True
 else:
     TESTING = True
+
 
 def upload_media(filename):
     if TESTING:
@@ -33,6 +33,7 @@ def upload_media(filename):
         raise
     return response.media_id_string
 
+
 def tweet_with_media(text: str, image_id: str, reply_to=None):
     logging.debug(f"Tweeting {text} with {image_id} in reply to {reply_to}")
     if TESTING:
@@ -42,12 +43,13 @@ def tweet_with_media(text: str, image_id: str, reply_to=None):
         update_tweet_params = {"status": text, "media_ids": [image_id]}
         if reply_to is not None:
             update_tweet_params["in_reply_to_status_id"] = reply_to
-        tweet_id = twitter_api.update_status(update_tweet_params)
+        tweet_id = twitter_api.update_status(**update_tweet_params)
     except:
         logging.exception('Tweet with media failed')
         print(sys.exc_info()[0])
         return False
     return tweet_id
+
 
 def tweet_text(text: str):
     if TESTING:
