@@ -30,7 +30,10 @@ class BaseParser():
         raise NotImplemented
 
     def entry_to_dict(self, article):
-        raise NotImplemented()
+        raise NotImplemented
+
+    def should_use_first_item_dedup(self):
+        return NotImplemented
 
     def tweet(self, text: str, article_id: str, url: str, image_path: str):
         image_id = upload_media(image_path)
@@ -115,15 +118,15 @@ class BaseParser():
 
     def loop_entries(self, entries):
         current_ids = set()
+        articles = {}
         for article in entries:
             try:
                 article_dict = self.entry_to_dict(article)
-                self.store_data(article_dict)
-                current_ids.add(article_dict['article_id'])
-                self.data_provider.remove_old(current_ids)
+                if article_dict['article_id'] not in articles or not self.should_use_first_item_dedup():
+                    articles[article_dict['article_id']] = article_dict
+                for article_dict in articles.values():
+                    self.store_data(article_dict)
+                    current_ids.add(article_dict['article_id'])
+                    self.data_provider.remove_old(current_ids)
             except BaseException as e:
                 logging.exception(f'Problem looping entry: {article}')
-                print('Exception: {}'.format(str(e)))
-                print('***************')
-                print(article)
-                print('***************')
