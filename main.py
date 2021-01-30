@@ -30,6 +30,7 @@ def main():
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("selenium").setLevel(logging.WARNING)
     logging.getLogger("PIL").setLevel(logging.WARNING)
+    logging.getLogger("requests_oauthlib").setLevel(logging.WARNING)
 
     logging.info('Starting script')
 
