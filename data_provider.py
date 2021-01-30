@@ -1,6 +1,5 @@
 import logging
 from typing import Dict, Set
-import copy
 from datetime import datetime
 
 import dataset
