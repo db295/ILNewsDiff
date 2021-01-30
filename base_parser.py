@@ -3,7 +3,6 @@ import os
 import time
 from typing import Dict
 
-import bleach
 import requests
 
 from data_provider import DataProvider
@@ -35,12 +34,16 @@ class BaseParser():
     def should_use_first_item_dedup(self):
         return NotImplemented
 
+    @staticmethod
+    def get_source():
+        raise NotImplemented()
+
     def tweet(self, text: str, article_id: str, url: str, image_path: str):
         image_id = upload_media(image_path)
         logging.info(f'Media ready with id: {image_id}')
         logging.info(f'Text to tweet: {text}')
         logging.info(f'Article id: {article_id}')
-        reply_to = self.data_provider.get_previous_tweet_id(article_id)
+        reply_to = self.data_provider.get_previous_tweet_id(article_id, self.get_source())
         if reply_to is None:
             logging.info(f'Tweeting url: {url}')
             tweet = tweet_text(url)
@@ -51,7 +54,7 @@ class BaseParser():
         # if TESTING, give a random id based on time
         tweet_id = time.time() if TESTING else tweet.id
         logging.info(f'Id to store: {tweet_id}')
-        self.data_provider.update_tweet_db(article_id, tweet_id)
+        self.data_provider.update_tweet_db(article_id, self.get_source(), tweet_id)
 
     @staticmethod
     def get_page(url, header=None, payload=None):
@@ -74,28 +77,13 @@ class BaseParser():
                 break
         return r
 
-    @staticmethod
-    def strip_html(html: str):
-        """
-        a wrapper for bleach.clean() that strips ALL tags from the input
-        """
-        tags = []
-        attr = {}
-        styles = []
-        strip = True
-        return bleach.clean(html,
-                            tags=tags,
-                            attributes=attr,
-                            styles=styles,
-                            strip=strip)
-
     def store_data(self, data: Dict):
-        if self.data_provider.is_article_tracked(data['article_id']):
+        if self.data_provider.is_article_tracked(data['article_id'], self.get_source()):
             count = self.data_provider.get_article_version_count(data[
-                                                                     'article_id'], data['hash'])
+                    'article_id'], self.get_source(), data['hash'])
             if count != 1:  # Changed
                 self.tweet_all_changes(data)
-                self.data_provider.add_article_version(data)
+                self.data_provider.increase_article_version(data)
         else:
             self.data_provider.track_article(data)
 
@@ -112,21 +100,21 @@ class BaseParser():
     def tweet_all_changes(self, data: Dict):
         article_id = data['article_id']
         url = data['url']
-        previous_version = self.data_provider.get_previous_article_version(article_id)
+        previous_version = self.data_provider.get_previous_article_version(article_id, self.get_source())
         self.tweet_change(previous_version['title'], data['title'], "שינוי בכותרת", article_id, url)
         self.tweet_change(previous_version['abstract'], data['abstract'], "שינוי בתת כותרת", article_id, url)
 
     def loop_entries(self, entries):
-        current_ids = set()
         articles = {}
         for article in entries:
             try:
                 article_dict = self.entry_to_dict(article)
                 if article_dict['article_id'] not in articles or not self.should_use_first_item_dedup():
                     articles[article_dict['article_id']] = article_dict
-                for article_dict in articles.values():
-                    self.store_data(article_dict)
-                    current_ids.add(article_dict['article_id'])
-                    self.data_provider.remove_old(current_ids)
             except BaseException as e:
                 logging.exception(f'Problem looping entry: {article}')
+        for article_dict in articles.values():
+            try:
+                self.store_data(article_dict)
+            except BaseException as e:
+                logging.exception(f'Problem looping entry: {article_dict}')
