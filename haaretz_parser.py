@@ -17,6 +17,9 @@ class HaaretzParser(RSSParser):
     @staticmethod
     def get_source():
         return "Haaretz"
+        
+    def should_use_first_item_dedup(self):
+        return True
 
     def entry_to_dict(self, article):
         article_dict = dict()
