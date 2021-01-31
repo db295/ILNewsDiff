@@ -12,6 +12,7 @@ class RSSParser(BaseParser):
 
     def parse(self):
         r = feedparser.parse(self.url)
+
         if r is None:
             logging.warning('Empty response RSS')
             return

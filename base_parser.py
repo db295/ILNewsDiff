@@ -21,7 +21,7 @@ MAX_RETRIES = 10
 RETRY_DELAY = 3
 
 
-class BaseParser():
+class BaseParser:
     def __init__(self):
         self.data_provider = DataProvider()
 
@@ -37,6 +37,15 @@ class BaseParser():
     @staticmethod
     def get_source():
         raise NotImplemented()
+
+    def _validate_change(self, url: str, new: str):
+        return True
+
+    def validate_change(self, url: str, old: str, new: str):
+        if not self._validate_change(url, new):
+            logging.info(f"Detected error. old was {old} new was {new} url {url}")
+            return False
+        return True
 
     def tweet(self, text: str, article_id: str, url: str, image_path: str):
         image_id = upload_media(image_path)
@@ -56,27 +65,6 @@ class BaseParser():
         logging.info(f'Id to store: {tweet_id}')
         self.data_provider.update_tweet_db(article_id, self.get_source(), tweet_id)
 
-    @staticmethod
-    def get_page(url, header=None, payload=None):
-        r = None
-        for x in range(MAX_RETRIES):
-            try:
-                r = requests.get(url=url, headers=header, params=payload)
-            except BaseException as e:
-                if x == MAX_RETRIES - 1:
-                    print('Max retries reached')
-                    logging.warning('Max retries for: %s', url)
-                    return None
-                if '104' not in str(e):
-                    print('Problem with url {}'.format(url))
-                    print('Exception: {}'.format(str(e)))
-                    logging.exception('Problem getting page')
-                    return None
-                time.sleep(RETRY_DELAY)
-            else:
-                break
-        return r
-
     def store_data(self, data: Dict):
         if self.data_provider.is_article_tracked(data['article_id'], self.get_source()):
             count = self.data_provider.get_article_version_count(data[
@@ -94,6 +82,9 @@ class BaseParser():
             return
         if previous_data == current_data:
             return
+        if not self.validate_change(url, previous_data, current_data):
+            return
+
         saved_image_diff_path = generate_image_diff(previous_data, current_data)
         self.tweet(tweet_text, article_id, url, saved_image_diff_path)
 
