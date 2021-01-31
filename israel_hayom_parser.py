@@ -20,9 +20,6 @@ class IsraelHayomParser(RSSParser):
     def should_use_first_item_dedup(self):
         return True
 
-    def _validate_change(self, url: str, new: str):
-        return validate_string_in_html(url, new)
-
     def entry_to_dict(self, article):
         article_dict = dict()
         article_dict['article_id'] = article.guid
