@@ -75,7 +75,7 @@ class BaseParser:
             self.data_provider.track_article(data)
 
     def tweet_change(self, previous_data: str, current_data: str, text_to_tweet: str, article_id: str, url: str):
-        saved_image_diff_path = generate_image_diff(previous_data, current_data)
+        saved_image_diff_path = generate_image_diff(previous_data, current_data, text_to_tweet)
         self.tweet(text_to_tweet, article_id, url, saved_image_diff_path)
 
     def tweet_all_changes(self, data: Dict):
