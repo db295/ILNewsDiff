@@ -10,6 +10,7 @@ body {
     font-family: Merriweather;
     font-size: 16px;
     direction: rtl;
+    margin-right: 10px;
 }
 
 p {
@@ -33,4 +34,22 @@ ins {
   color: black;
   text-decoration: none;
   font-weight: bold;
+}
+
+img {
+    vertical-align: middle;
+    margin-right: -5px;
+    margin-bottom: 5px;
+}
+
+.alignleft {
+    margin-right: 0em;
+
+    font-size: 14px;
+    text-align:left;
+    direction:ltr;
+    color:gray
+}
+.alignright {
+    float:right;
 }
