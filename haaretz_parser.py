@@ -23,7 +23,6 @@ class HaaretzParser(RSSParser):
     def _validate_change(self, url: str, new: str):
         return validate_string_in_html(url, new)
 
-
     def entry_to_dict(self, article):
         article_dict = dict()
         article_dict['article_id'] = article.guid
@@ -36,4 +35,3 @@ class HaaretzParser(RSSParser):
             repr(od.items()).encode('utf-8')).hexdigest()
         article_dict['date_time'] = datetime.now(self.tz)
         return article_dict
-
