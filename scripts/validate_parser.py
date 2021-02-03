@@ -3,7 +3,7 @@ from pytz import timezone
 import feedparser
 
 from validators import html_validator
-from israel_hayom_parser import IsraelHayomParser as Parser
+from parsers.walla_parser import WallaParser as Parser
 
 TIMEZONE = 'Israel'
 LOCAL_TZ = timezone(TIMEZONE)

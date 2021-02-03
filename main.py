@@ -6,8 +6,9 @@ import sys
 
 from pytz import timezone
 
-from haaretz_parser import HaaretzParser
-from israel_hayom_parser import IsraelHayomParser
+from parsers.haaretz_parser import HaaretzParser
+from parsers.israel_hayom_parser import IsraelHayomParser
+from parsers.walla_parser import WallaParser
 
 TIMEZONE = 'Israel'
 LOCAL_TZ = timezone(TIMEZONE)
@@ -38,7 +39,7 @@ def main():
 
     try:
         logging.debug('Starting Parsers')
-        parsers = [HaaretzParser(LOCAL_TZ), IsraelHayomParser(LOCAL_TZ)]
+        parsers = [HaaretzParser(LOCAL_TZ), IsraelHayomParser(LOCAL_TZ), WallaParser(LOCAL_TZ)]
         for parser in parsers:
             logging.info(f"Parsing {parser.get_source()}")
             parser.parse()
