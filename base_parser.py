@@ -7,7 +7,7 @@ import requests
 
 from data_provider import DataProvider
 from twitter_helper import upload_media, tweet_text, tweet_with_media
-from image_diff_generator import generate_image_diff
+from image_diff_generator import ImageDiffGenerator
 
 if 'TESTING' in os.environ:
     if os.environ['TESTING'] == 'False':
@@ -38,13 +38,19 @@ class BaseParser:
     def get_source():
         raise NotImplemented()
 
-    def _validate_change(self, url: str, new: str):
-        return True
+    def get_integrity_validators(self):
+        return []
 
-    def validate_change(self, url: str, old: str, new: str):
-        if not self._validate_change(url, new):
-            logging.info(f"Detected error. old was {old} new was {new} url {url}")
-            return False
+    def get_tweet_validators(self):
+        return []
+
+    @staticmethod
+    def validate(validators: list, url: str, old: str, new: str):
+        for validator in validators:
+            if not validator.validate_change(url, old, new):
+                logging.info(
+                    f"Detected error. old was \n{old}\n new was \n{new}\n url {url} type: {validator.__name__}")
+                return False
         return True
 
     def tweet(self, text: str, article_id: str, url: str, image_path: str):
@@ -68,14 +74,14 @@ class BaseParser:
     def store_data(self, data: Dict):
         if self.data_provider.is_article_tracked(data['article_id'], self.get_source()):
             count = self.data_provider.get_article_version_count(data[
-                    'article_id'], self.get_source(), data['hash'])
+                                                                     'article_id'], self.get_source(), data['hash'])
             if count != 1:  # Changed
                 self.tweet_all_changes(data)
         else:
             self.data_provider.track_article(data)
 
     def tweet_change(self, previous_data: str, current_data: str, text_to_tweet: str, article_id: str, url: str):
-        saved_image_diff_path = generate_image_diff(previous_data, current_data, text_to_tweet)
+        saved_image_diff_path = ImageDiffGenerator.generate_image_diff(previous_data, current_data, text_to_tweet)
         self.tweet(text_to_tweet, article_id, url, saved_image_diff_path)
 
     def tweet_all_changes(self, data: Dict):
@@ -85,25 +91,26 @@ class BaseParser:
 
         save_to_db = False
 
-        if self.should_tweet(url, previous_version['title'], data['title']):
-            self.tweet_change(previous_version['title'], data['title'], "שינוי בכותרת", article_id, url)
+        if self.validate(self.get_integrity_validators(), url, previous_version['title'], data['title']):
             save_to_db = True
+            if self.should_tweet(url, previous_version['title'], data['title']):
+                self.tweet_change(previous_version['title'], data['title'], "שינוי בכותרת", article_id, url)
 
-        if self.should_tweet(url, previous_version['abstract'], data['abstract']):
-            self.tweet_change(previous_version['abstract'], data['abstract'], "שינוי בתת כותרת", article_id, url)
+        if self.validate(self.get_integrity_validators(), url, previous_version['abstract'], data['abstract']):
             save_to_db = True
+            if self.should_tweet(url, previous_version['abstract'], data['abstract']):
+                self.tweet_change(previous_version['abstract'], data['abstract'], "שינוי בתת כותרת", article_id, url)
 
         if save_to_db:
             self.data_provider.increase_article_version(data)
 
     def should_tweet(self, url: str, previous_data: str, current_data: str):
         if len(previous_data) == 0 or len(current_data) == 0:
-            logging.info('Old or New empty')
             return False
         if previous_data == current_data:
             return False
-        if not self.validate_change(url, previous_data, current_data):
-            return
+        if not self.validate(self.get_tweet_validators(), url, previous_data, current_data):
+            return False
 
         return True
 
