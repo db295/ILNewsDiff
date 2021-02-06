@@ -42,7 +42,7 @@ class ImageDiffGenerator:
     @staticmethod
     def generate_image_diff(old: str, new: str, text_to_tweet: str):
         ImageDiffGenerator.init()
-        html = ImageDiffGenerator.image_diff_template.replace("old", old).replace("new", new).replace("text_to_tweet",
+        html = ImageDiffGenerator.image_diff_template.replace("old_img", old).replace("new_img", new).replace("text_to_tweet",
                                                                                                      text_to_tweet)
         new_hash = hashlib.sha224(new.encode('utf8')).hexdigest()
         return ImageDiffGenerator.generate_image(html, new_hash)
@@ -62,7 +62,7 @@ class ImageDiffGenerator:
         block_width = e.size['width']
         end_width = start_width
         total_height = start_height + block_height + end_height
-        total_width = 510  # Override because body width is set to 500
+        total_width = 520  # Override because body width is set to 500
         timestamp = str(int(time.time()))
         ImageDiffGenerator.driver.save_screenshot('./tmp.png')
         img = Image.open('./tmp.png')

@@ -39,7 +39,7 @@ def main():
 
     try:
         logging.debug('Starting Parsers')
-        parsers = [HaaretzParser(LOCAL_TZ)]#, IsraelHayomParser(LOCAL_TZ), WallaParser(LOCAL_TZ)]
+        parsers = [HaaretzParser(LOCAL_TZ), IsraelHayomParser(LOCAL_TZ), WallaParser(LOCAL_TZ)]
         for parser in parsers:
             logging.info(f"Parsing {parser.get_source()}")
             parser.parse()
