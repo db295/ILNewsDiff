@@ -2,6 +2,8 @@
 
 See feed here: https://twitter.com/ILNewsDiff
 
+**Interested in contributing to this project? Send us a direct message on [twitter](https://twitter.com/ILNewsDiff)**
+
 A Twitter bot that keeps track of changes made in Israeli news websites.
 
 Currently tracking:
