@@ -35,6 +35,9 @@ Installation
 
 Credits
 -------
+For contributing to this repo:
+* [@yuvalpinter](https://github.com/yuvalpinter)
+
 Based on @j-e-d's code for the Twitter bot [@nyt_diff](https://twitter.com/nyt_diff).  
 RSS feed fetching added for @xuv's Twitter bot [@lesoir_diff](https://twitter.com/lesoir_diff)
 
