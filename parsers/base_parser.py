@@ -121,6 +121,7 @@ class BaseParser:
                     articles[article_dict['article_id']] = article_dict
             except BaseException:
                 logging.exception(f'Problem looping entry: {article}')
+        
         for article_dict in articles.values():
             try:
                 self.store_data(article_dict)

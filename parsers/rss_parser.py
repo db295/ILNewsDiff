@@ -1,5 +1,4 @@
 import logging
-
 import feedparser
 
 from base_parser import BaseParser
@@ -16,6 +15,6 @@ class RSSParser(BaseParser):
         if r is None:
             logging.warning('Empty response RSS')
             return
-        else:
-            logging.info('Parsing %s', r.channel.title)
+        
+        logging.info('Parsing %s', r.channel.title)
         self.loop_entries(r.entries)
