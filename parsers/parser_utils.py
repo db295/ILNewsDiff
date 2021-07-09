@@ -16,6 +16,7 @@ def standard_entry_to_dict(article, source, tz, strip_description=False):
     else:
         article_dict['abstract'] = article['description']
     od = collections.OrderedDict(sorted(article_dict.items()))
+    # The bug of the key??
     article_dict['hash'] = hashlib.sha224(repr(od.items()).encode('utf-8')).hexdigest()
     article_dict['date_time'] = datetime.now(tz)
     return article_dict
