@@ -5,7 +5,7 @@ from typing import Dict
 
 from data_provider import DataProvider
 from twitter_helper import upload_media, tweet_text, tweet_with_media
-from image_diff_generator import ImageDiffGenerator
+from image_generator.image_diff_generator import ImageDiffGenerator
 
 if 'TESTING' in os.environ:
     if os.environ['TESTING'] == 'False':

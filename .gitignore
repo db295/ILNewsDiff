@@ -189,5 +189,4 @@ dmypy.json
 
 *.log
 titles.db*
-*.html
 *.png

@@ -66,14 +66,12 @@ class ImageDiffGenerator:
         img = Image.open('./tmp.png')
         img2 = img.crop((0, 0, total_width, total_height))
         if int(total_width) > int(total_height * 2):
-            background = Image.new('RGBA', (total_width, int(total_width / 2)),
-                                   (255, 255, 255, 0))
+            background = Image.new('RGBA', (total_width, int(total_width / 2)), (255, 255, 255, 0))
             bg_w, bg_h = background.size
             offset = (int((bg_w - total_width) / 2),
                       int((bg_h - total_height) / 2))
         else:
-            background = Image.new('RGBA', (total_width, total_height),
-                                   (255, 255, 255, 0))
+            background = Image.new('RGBA', (total_width, total_height), (255, 255, 255, 0))
             bg_w, bg_h = background.size
             offset = (int((bg_w - total_width) / 2),
                       int((bg_h - total_height) / 2))
