@@ -5,8 +5,8 @@ import dataset
 
 
 class DataProvider:
-    def __init__(self):
-        self.db = dataset.connect('sqlite:///titles.db')
+    def __init__(self, db_path="titles.db"):
+        self.db = dataset.connect(f'sqlite:///{db_path}')
         self.articles_table = self.db['rss_ids']
         self.versions_table = self.db['rss_versions']
 
@@ -24,6 +24,9 @@ class DataProvider:
         data['version'] = 1
         self.versions_table.insert(data)
         logging.info(f"New article tracked: {data['url']}")
+
+    def get_article(self, article_id):
+        return self.articles_table.find_one(id=article_id)
 
     def get_article_version_count(self, artice_id: str, article_source: str, hash: str):
         return self.versions_table.count(
