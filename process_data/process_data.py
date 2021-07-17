@@ -1,32 +1,36 @@
 import argparse
+import itertools
 
 from printer_extractor import PrinterExtractor
-from data_provider import DataProvider
+from csv_data_provider import CsvDataProvider
 
 FEATURE_EXTRACTORS = [PrinterExtractor]
 
 
-def process_data(databse_file):
-    dt = DataProvider(databse_file)
+def process_data(data_files):
+    dt = CsvDataProvider(data_files)
 
     # TODO: setup? - prepare tables/cols
-    cols = [extractor.get_cols() for extractor in FEATURE_EXTRACTORS]
-    print(cols)
+    cols = itertools.chain.from_iterable([extractor.get_cols() for extractor in FEATURE_EXTRACTORS])
+    print(list(cols))
 
     # Extract Features
-    for article in dt.articles_table:
-        versions = dt.get_ordered_versions(article["article_id"])
-        for counter, single_version in enumerate(versions):
+    for _id, article in dt.articles.iterrows():
+        article_versions = dt.versions[(dt.versions["article_id"] == article["article_id"]) &
+                                       (dt.versions["article_source"] == article["article_source"])]
+
+        for __id, single_version in article_versions.iterrows():
+            past_versions = article_versions[article_versions["version"] < single_version["version"]]
             for feature_extractor in FEATURE_EXTRACTORS:
-                feature_extractor.extract(single_version, versions[:counter], article)
+                feature_extractor.extract(single_version, past_versions, article)
 
 
 def main():
     parser = argparse.ArgumentParser(description='Process some data.')
-    parser.add_argument('database', help='A path to a database')
+    parser.add_argument('datafiles', help='A path to the folders with the csvs')
 
     args = parser.parse_args()
-    process_data(args.database)
+    process_data(args.datafiles)
 
 
 if __name__ == "__main__":
