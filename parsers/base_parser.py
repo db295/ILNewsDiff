@@ -71,8 +71,7 @@ class BaseParser:
 
     def store_data(self, data: Dict):
         if self.data_provider.is_article_tracked(data['article_id'], self.get_source()):
-            count = self.data_provider.get_article_version_count(data[
-                                                                     'article_id'], self.get_source(), data['hash'])
+            count = self.data_provider.get_article_version_count(data['article_id'], self.get_source(), data['hash'])
             if count != 1:  # Changed
                 self.tweet_all_changes(data)
         else:
