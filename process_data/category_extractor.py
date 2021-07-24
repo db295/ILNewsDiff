@@ -50,7 +50,9 @@ class CategoryExtractor(object):
 
     @staticmethod
     def extract(data, previous_data, article):
-        return {
-            'category': CategoryExtractor.extract_article_category(data),
-            'type': CategoryExtractor.extract_article_type(data)
-        }
+        return [
+            # category
+            CategoryExtractor.extract_article_category(data),
+            # type
+            CategoryExtractor.extract_article_type(data)
+        ]

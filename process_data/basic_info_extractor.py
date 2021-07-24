@@ -26,11 +26,17 @@ class BasicInfoExtractor(object):
 
     @staticmethod
     def extract(data, previous_data, article):
-        return {
-            'id': data['id'],
-            'article_id': BasicInfoExtractor.extract_article_id(data),
-            'version': data['version'],
-            'url': data['url'],
-            'timestamp': data['date_time'],
-            'source': data['article_source']
-        }
+        return [
+            # id
+            data['id'],
+            # article_id
+            BasicInfoExtractor.extract_article_id(data),
+            # version
+            data['version'],
+            # url
+            data['url'],
+            # timestamp
+            data['date_time'],
+            # source
+            data['article_source']
+        ]

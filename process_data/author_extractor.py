@@ -41,6 +41,7 @@ class AuthorExtractor(object):
 
     @staticmethod
     def extract(data, previous_data, article):
-        return {
-            'author': AuthorExtractor.extract_author(data)
-        }
+        return [
+            # author
+            AuthorExtractor.extract_author(data)
+        ]
