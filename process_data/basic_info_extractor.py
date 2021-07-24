@@ -1,3 +1,6 @@
+from time_utils import convert_str_to_timestamp
+
+
 class BasicInfoExtractor(object):
     def __init__(self) -> None:
         pass
@@ -36,7 +39,7 @@ class BasicInfoExtractor(object):
             # url
             data['url'],
             # timestamp
-            data['date_time'],
+            convert_str_to_timestamp(data['date_time']),
             # source
             data['article_source']
         ]
