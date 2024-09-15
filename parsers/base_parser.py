@@ -5,7 +5,7 @@ from typing import Dict
 
 from data_provider import DataProvider
 from twitter_helper import upload_media, tweet_text, tweet_with_media
-from image_diff_generator import ImageDiffGenerator
+from image_generator.image_diff_generator import ImageDiffGenerator
 
 if 'TESTING' in os.environ:
     if os.environ['TESTING'] == 'False':
@@ -71,8 +71,7 @@ class BaseParser:
 
     def store_data(self, data: Dict):
         if self.data_provider.is_article_tracked(data['article_id'], self.get_source()):
-            count = self.data_provider.get_article_version_count(data[
-                                                                     'article_id'], self.get_source(), data['hash'])
+            count = self.data_provider.get_article_version_count(data['article_id'], self.get_source(), data['hash'])
             if count != 1:  # Changed
                 self.tweet_all_changes(data)
         else:
@@ -121,6 +120,7 @@ class BaseParser:
                     articles[article_dict['article_id']] = article_dict
             except BaseException:
                 logging.exception(f'Problem looping entry: {article}')
+        
         for article_dict in articles.values():
             try:
                 self.store_data(article_dict)
